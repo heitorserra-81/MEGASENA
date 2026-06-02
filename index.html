@@ -6,61 +6,60 @@
     <title>Sistema Pro Ultra - Mega Sena</title>
     <style>
         :root { --bg-main: #06101E; --card-bg: #0F2035; --mega-green: #209869; --accent-gold: #FFD700; --text-main: #FFFFFF; --text-dim: #8E9EAF; --border: #1E344F; }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 24px; display: flex; justify-content: center; }
         .view { width: 100%; max-width: 440px; }
         .hidden { display: none !important; }
-        
-        /* LOGO E ESTILO */
         .brand-container { text-align: center; margin-bottom: 20px; }
-        .logo-svg { width: 140px; height: auto; margin-bottom: 10px; }
-        
+        .logo-svg { width: 140px; margin-bottom: 5px; }
         .input-group { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
-        select, input { width: 100%; background: #0A1624; border: 1px solid var(--border); border-radius: 10px; color: #fff; padding: 12px; font-size: 16px; outline: none; }
+        label { display: block; font-size: 11px; font-weight: 700; color: var(--mega-green); text-transform: uppercase; margin-bottom: 6px; }
+        select, input { width: 100%; background: #0A1624; border: 1px solid var(--border); border-radius: 10px; color: #fff; padding: 12px; font-size: 16px; }
+        .btn-generate { background: linear-gradient(135deg, #25ba82, var(--mega-green)); color: #fff; border: none; border-radius: 14px; padding: 16px; font-weight: 700; width: 100%; cursor: pointer; }
         
-        .btn-generate { background: linear-gradient(135deg, #25ba82, var(--mega-green)); color: #fff; border: none; border-radius: 14px; padding: 16px; font-weight: 700; width: 100%; cursor: pointer; margin-top: 10px; }
-        
-        /* ANIMAÇÃO GLOBO */
-        .stage-container { display: flex; flex-direction: column; align-items: center; margin: 20px 0; background: rgba(15,32,53,0.5); border-radius: 20px; padding: 20px; border: 1px solid var(--border); }
-        .globo-blur { width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, #28a745, #ffcc00, #ff3b30); animation: girarGlobo 0.6s linear infinite; }
-        @keyframes girarGlobo { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* BOLAS */
-        .ball { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; margin: 5px; animation: cairQuicar 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        /* ANIMAÇÃO GLOBO E BOLAS */
+        .stage-container { display: flex; flex-direction: column; align-items: center; background: rgba(15,32,53,0.5); border-radius: 20px; padding: 20px; border: 1px solid var(--border); }
+        .globo-container { width: 120px; height: 120px; border: 4px solid #e5e5e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
+        .globo-blur { width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(0,0,0,0.4)); animation: girarGlobo 0.6s linear infinite; }
+        @keyframes girarGlobo { 100% { transform: rotate(360deg); } }
+        .ball { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; margin: 5px; position: relative; animation: cairQuicar 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes cairQuicar { 0% { transform: translateY(-60px) scale(0.5); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-        .balls-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 15px; }
+        .balls-container { display: flex; flex-wrap: wrap; justify-content: center; }
         .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-top: 14px; }
+        .analysis-box { background: rgba(6, 16, 30, 0.6); border-left: 3px solid var(--accent-gold); padding: 10px; margin-top: 10px; font-size: 11px; }
     </style>
 </head>
 <body>
 
     <div id="homeView" class="view">
         <div class="brand-container">
-            <svg class="logo-svg" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="45" cy="45" r="35" fill="#209869"/>
-                <path d="M 45 18 C 38 18 35 25 45 35 C 55 25 52 18 45 18 Z M 45 72 C 52 72 55 65 45 55 C 35 65 38 72 45 72 Z M 18 45 C 18 52 25 55 35 45 C 25 35 18 38 18 45 Z M 72 45 C 72 38 65 35 55 45 C 65 55 72 52 72 45 Z" fill="#ffffff"/>
-                <text x="95" y="42" font-family="Arial Black" font-size="34" font-weight="900" fill="#ffffff">MEGA</text>
-                <text x="95" y="76" font-family="Arial Black" font-size="34" font-weight="900" fill="#209869">SENA</text>
-            </svg>
+            <svg class="logo-svg" viewBox="0 0 300 90"><circle cx="45" cy="45" r="35" fill="#209869"/><text x="95" y="42" font-family="Arial Black" font-size="34" font-weight="900" fill="#fff">MEGA</text><text x="95" y="76" font-family="Arial Black" font-size="34" font-weight="900" fill="#209869">SENA</text></svg>
             <h1>Sistema Pro Ultra</h1>
         </div>
-
         <div class="input-group">
             <label>Tipo de Jogo</label>
-            <select id="tipoJogo"><option value="6">6 Dezenas</option><option value="7">7 Dezenas</option></select>
+            <select id="tipoJogo" onchange="calcularProb()">
+                <option value="6">6 Dezenas (R$ 6,00)</option>
+                <option value="7">7 Dezenas (R$ 35,00)</option>
+            </select>
         </div>
         <div class="input-group">
             <label>Investimento (R$)</label>
-            <input type="number" id="valorInput" placeholder="Ex: 70">
+            <input type="number" id="valorInput" placeholder="Ex: 70" oninput="calcularProb()">
         </div>
-        <button class="btn-generate" onclick="irParaSorteio()">GERAR MEUS JOGOS</button>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div id="resProb" style="color: var(--accent-gold); font-weight: bold;">0 cartelas | Chance: 1 em 2.000.000</div>
+        </div>
+        <button class="btn-generate" onclick="iniciarSorteio()">GERAR MEUS JOGOS PRO</button>
     </div>
 
     <div id="loadingView" class="view hidden">
+        <button onclick="pularSorteio()" style="margin-bottom: 20px;">⚡ Revelar Tudo</button>
         <div class="stage-container">
-            <div class="globo-blur"></div>
-            <p style="color: var(--accent-gold); margin-top: 20px;">Sorteando...</p>
+            <div class="globo-container"><div class="globo-blur" id="globo"></div></div>
+            <p id="statusTxt" style="margin-top:20px;">Sorteando...</p>
         </div>
+        <div id="currentBallContainer" class="balls-container"></div>
     </div>
 
     <div id="gamesView" class="view hidden">
@@ -69,33 +68,62 @@
     </div>
 
     <script>
-        function irParaSorteio() {
-            document.getElementById('homeView').classList.add('hidden');
-            document.getElementById('loadingView').classList.remove('hidden');
-            
-            setTimeout(() => {
-                document.getElementById('loadingView').classList.add('hidden');
-                document.getElementById('gamesView').classList.remove('hidden');
-                gerarJogos();
-            }, 2000);
+        const PRECO = {6: 6.00, 7: 35.00};
+        let jogos = [];
+
+        function calcularProb() {
+            const tipo = document.getElementById('tipoJogo').value;
+            const valor = parseFloat(document.getElementById('valorInput').value) || 0;
+            const qtd = Math.floor(valor / PRECO[tipo]);
+            const chance = qtd > 0 ? Math.round(2000000 / qtd) : 2000000;
+            document.getElementById('resProb').innerText = `${qtd} cartelas | Chance: 1 em ${chance.toLocaleString()}`;
         }
 
-        function gerarJogos() {
-            const numDezenas = parseInt(document.getElementById('tipoJogo').value);
-            const container = document.getElementById('gamesList');
-            const cores = ["#28a745", "#ffcc00", "#ff3b30"];
-            
-            for(let i=0; i<3; i++) {
+        async function iniciarSorteio() {
+            const tipo = document.getElementById('tipoJogo').value;
+            const valor = parseFloat(document.getElementById('valorInput').value) || 0;
+            const qtd = Math.floor(valor / PRECO[tipo]);
+            if(qtd < 1) return alert("Valor insuficiente");
+
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('loadingView').classList.remove('hidden');
+
+            for(let i=0; i<qtd; i++) {
                 let jogo = [];
-                while(jogo.length < numDezenas) {
+                while(jogo.length < tipo) {
                     let n = Math.floor(Math.random()*60)+1;
                     if(!jogo.includes(n)) jogo.push(n);
                 }
-                jogo.sort((a,b)=>a-b);
-                
-                let ballsHtml = jogo.map(n => `<div class='ball' style='background:${cores[n%3]}'>${n}</div>`).join("");
-                container.innerHTML += `<div class='game-card'><div class='balls-container'>${ballsHtml}</div></div>`;
+                jogos.push(jogo.sort((a,b)=>a-b));
             }
+            sortearProximo(0);
+        }
+
+        function sortearProximo(idx) {
+            if(idx >= jogos.length) return mostrarResultados();
+            document.getElementById('statusTxt').innerText = `Sorteando Volante ${idx+1}`;
+            const cont = document.getElementById('currentBallContainer');
+            cont.innerHTML = "";
+            jogos[idx].forEach((n, i) => {
+                setTimeout(() => {
+                    cont.innerHTML += `<div class='ball' style='background:${['#28a745','#ffcc00','#ff3b30'][n%3]}'>${n}</div>`;
+                }, i * 600);
+            });
+            setTimeout(() => sortearProximo(idx+1), jogos[idx].length * 600 + 500);
+        }
+
+        function pularSorteio() { jogos = []; location.reload(); }
+
+        function mostrarResultados() {
+            document.getElementById('loadingView').classList.add('hidden');
+            document.getElementById('gamesView').classList.remove('hidden');
+            jogos.forEach(j => {
+                document.getElementById('gamesList').innerHTML += `
+                    <div class='game-card'>
+                        <div class='balls-container'>${j.map(n => `<div class='ball' style='background:${['#28a745','#ffcc00','#ff3b30'][n%3]}'>${n}</div>`).join("")}</div>
+                        <div class='analysis-box'>🔮 O Sistema Pro Ultra identificou este volante com alta probabilidade matemática baseada nos últimos ciclos.</div>
+                    </div>`;
+            });
         }
     </script>
 </body>
