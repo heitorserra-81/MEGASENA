@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistema Pro Ultra - Mega Sena</title>
+    <style>
+        :root { --bg-main: #06101E; --card-bg: #0F2035; --input-bg: #0A1624; --mega-green: #209869; --accent-gold: #FFD700; --text-main: #FFFFFF; --text-dim: #8E9EAF; --border: #1E344F; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 0; display: flex; justify-content: center; }
+        .view { width: 100%; max-width: 440px; min-height: 100vh; display: flex; flex-direction: column; padding: 24px; }
+        .hidden { display: none !important; }
+        .brand-container { text-align: center; margin-top: 10px; margin-bottom: 20px; }
+        .input-group { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+        label { display: block; font-size: 11px; font-weight: 700; color: var(--mega-green); text-transform: uppercase; margin-bottom: 6px; }
+        select, input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 10px; color: #ffffff; padding: 12px; font-size: 16px; outline: none; }
+        .btn-generate { background: linear-gradient(135deg, #25ba82, var(--mega-green)); color: #ffffff; border: none; border-radius: 14px; padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; }
+        .results-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-top: 14px; }
+        .ball { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #FFFFFF; font-size: 15px; margin: 5px; }
+        .balls-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-top: 14px; }
+        .btn-results { background: transparent; color: var(--text-dim); border: 1px solid var(--border); border-radius: 14px; padding: 12px; width: 100%; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="homeView" class="view">
+        <div class="brand-container">
+            <h1>Sistema Pro Ultra</h1>
+            <p>Inteligência Matemática & Filtros</p>
+        </div>
+        <div class="input-group">
+            <label>Tipo de Jogo</label>
+            <select id="tipoJogo" onchange="calcularTempoReal()">
+                <option value="6">6 Dezenas</option>
+                <option value="7">7 Dezenas</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Investimento (R$)</label>
+            <input type="number" id="valorInput" placeholder="Ex: 70" oninput="calcularTempoReal()">
+        </div>
+        <button class="btn-generate" onclick="irParaSorteio()">GERAR MEUS JOGOS</button>
+        <button class="btn-results" onclick="alternarResultados()">Ver últimos resultados</button>
+        <div id="panelResults" class="results-panel hidden">
+            <div id="listaResultados">Carregando...</div>
+        </div>
+    </div>
+
+    <div id="gamesView" class="view hidden">
+        <button onclick="window.location.reload()">⬅ Voltar</button>
+        <div id="gamesList"></div>
+    </div>
+
+    <script>
+        const PRECO_6 = 6.00; const PRECO_7 = 35.00;
+        
+        function calcularTempoReal() {
+            const tipo = parseInt(document.getElementById('tipoJogo').value);
+            const valor = parseFloat(document.getElementById('valorInput').value) || 0;
+            document.getElementById('resJogos').innerText = Math.floor(valor / (tipo === 7 ? PRECO_7 : PRECO_6));
+        }
+
+        async function alternarResultados() {
+            const painel = document.getElementById('panelResults');
+            painel.classList.toggle('hidden');
+            if (!painel.classList.contains('hidden')) {
+                try {
+                    const res = await fetch("https://loteriascaixa-api.herokuapp.com/api/megasena").then(r => r.json());
+                    let html = "";
+                    res.slice(0, 5).forEach(c => {
+                        html += `<div>Concurso ${c.concurso}: ${c.dezenas.join(", ")}</div><hr>`;
+                    });
+                    document.getElementById('listaResultados').innerHTML = html;
+                } catch (e) { document.getElementById('listaResultados').innerHTML = "Erro ao carregar."; }
+            }
+        }
+
+        function irParaSorteio() {
+            const numDezenas = parseInt(document.getElementById('tipoJogo').value);
+            const total = parseInt(document.getElementById('valorInput').value) / (numDezenas === 7 ? PRECO_7 : PRECO_6);
+            if (total < 1) return alert("Valor insuficiente");
+
+            const gamesList = document.getElementById('gamesList');
+            gamesList.innerHTML = "";
+            for (let i = 0; i < Math.floor(total); i++) {
+                let jogo = [];
+                while (jogo.length < numDezenas) {
+                    let n = Math.floor(Math.random() * 60) + 1;
+                    if (!jogo.includes(n)) jogo.push(n);
+                }
+                jogo.sort((a,b) => a-b);
+                gamesList.innerHTML += `<div class='game-card'>${jogo.join(" - ")}</div>`;
+            }
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('gamesView').classList.remove('hidden');
+        }
+    </script>
+    <div id="resJogos" class="hidden"></div>
+</body>
+</html>
