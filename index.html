@@ -4,27 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Restaurante Interativo</title>
-
-  <!-- Firebase SDK (modular compat para usar com Firestore) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
   <style>
-    /* ===== RESET e BASE ===== */
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: #0a0a1a;
       color: #fff;
       overflow: hidden;
       height: 100vh;
       width: 100vw;
     }
-
-    /* ===== TV (modo padrão) ===== */
     #tv-container {
       width: 100vw;
       height: 100vh;
@@ -34,7 +26,6 @@
       align-items: center;
       justify-content: center;
     }
-
     #display-area {
       width: 90%;
       height: 80%;
@@ -44,7 +35,6 @@
       position: relative;
       overflow: hidden;
     }
-
     #message-box {
       font-size: 4rem;
       text-align: center;
@@ -53,30 +43,24 @@
       border-radius: 30px;
       backdrop-filter: blur(8px);
       border: 2px solid rgba(255,215,0,0.2);
-      box-shadow: 0 0 60px rgba(255,215,0,0.1);
       transition: opacity 0.4s;
       max-width: 85%;
       word-wrap: break-word;
       z-index: 2;
+      min-width: 300px;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    #message-box img {
-      max-width: 80vw;
-      max-height: 70vh;
-      border-radius: 20px;
-    }
-
+    #message-box img { max-width: 80vw; max-height: 70vh; border-radius: 20px; }
     #animation-layer {
       position: absolute;
       top:0; left:0;
       width:100%; height:100%;
       pointer-events: none;
       z-index: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
-
-    /* QR Code - canto inferior direito */
     #qr-wrapper {
       position: absolute;
       bottom: 30px;
@@ -89,18 +73,9 @@
       box-shadow: 0 8px 30px rgba(0,0,0,0.6);
       z-index: 10;
     }
-    #qr-wrapper p {
-      font-size: 0.75rem;
-      margin-top: 6px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-    #qr-code {
-      width: 130px;
-      height: 130px;
-    }
+    #qr-wrapper p { font-size: 0.75rem; margin-top: 6px; font-weight: 600; }
+    #qr-code { width: 130px; height: 130px; }
 
-    /* ===== CONTROLE (modo celular) ===== */
     #control-container {
       display: none;
       max-width: 500px;
@@ -119,7 +94,6 @@
       border-bottom: 2px solid #2a2a4a;
       padding-bottom: 12px;
     }
-
     .card {
       background: #1f1f3a;
       border-radius: 16px;
@@ -135,13 +109,8 @@
       align-items: center;
       gap: 8px;
     }
-    .card label {
-      display: block;
-      font-size: 0.9rem;
-      margin: 8px 0 4px;
-      color: #aaa;
-    }
-    .card input, .card textarea, .card select {
+    .card label { display: block; font-size: 0.9rem; margin: 8px 0 4px; color: #aaa; }
+    .card input, .card textarea {
       width: 100%;
       padding: 10px 12px;
       border: none;
@@ -153,15 +122,8 @@
       outline: 1px solid transparent;
       transition: 0.2s;
     }
-    .card input:focus, .card textarea:focus {
-      outline-color: #f7d44a;
-    }
-    .card textarea {
-      resize: vertical;
-      min-height: 50px;
-      font-family: inherit;
-    }
-
+    .card input:focus, .card textarea:focus { outline-color: #f7d44a; }
+    .card textarea { resize: vertical; min-height: 50px; font-family: inherit; }
     .btn {
       display: inline-block;
       background: #f7d44a;
@@ -180,7 +142,6 @@
     .btn:hover { background: #e6c03a; transform: scale(0.98); }
     .btn-secondary { background: #4a4a7a; color: #fff; }
     .btn-secondary:hover { background: #5a5a8a; }
-
     .star-rating {
       display: flex;
       gap: 8px;
@@ -189,16 +150,8 @@
       cursor: pointer;
       margin: 10px 0;
     }
-    .star-rating span {
-      filter: grayscale(1);
-      transition: 0.2s;
-      user-select: none;
-    }
-    .star-rating span.active {
-      filter: grayscale(0);
-      transform: scale(1.2);
-    }
-
+    .star-rating span { filter: grayscale(1); transition: 0.2s; user-select: none; }
+    .star-rating span.active { filter: grayscale(0); transform: scale(1.2); }
     #status {
       text-align: center;
       margin-top: 20px;
@@ -207,8 +160,6 @@
       border-top: 1px solid #2a2a4a;
       padding-top: 16px;
     }
-
-    /* ===== ANIMAÇÕES GLOBAIS ===== */
     @keyframes garcom {
       0%, 100% { transform: translateY(0) rotate(0deg); }
       50% { transform: translateY(-20px) rotate(5deg); }
@@ -222,12 +173,46 @@
       50% { opacity:1; transform: scale(2); }
       100% { opacity:0; transform: scale(3); }
     }
-    @keyframes fadeInUp {
-      from { opacity:0; transform: translateY(30px); }
-      to { opacity:1; transform: translateY(0); }
+    @keyframes fall {
+      0% { transform: translateY(-100px) rotate(0deg); opacity:1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
     }
-
-    /* ===== RESPONSIVO ===== */
+    .confetti {
+      position: absolute;
+      font-size: 2rem;
+      animation: fall 4s linear forwards;
+      pointer-events: none;
+    }
+    .heart-fall {
+      position: absolute;
+      font-size: 2.5rem;
+      animation: fall 3s ease-in forwards;
+      pointer-events: none;
+    }
+    .blackboard {
+      background: #1a3a1a;
+      padding: 30px 40px;
+      border-radius: 20px;
+      border: 8px solid #6b4f3c;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+      color: #fff;
+      font-family: 'Chalkboard', cursive;
+      font-size: 3rem;
+      text-align: center;
+      min-width: 60%;
+      position: relative;
+    }
+    .blackboard::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border: 2px dashed rgba(255,255,255,0.1);
+      border-radius: 10px;
+      pointer-events: none;
+    }
     @media (max-width: 600px) {
       #message-box { font-size: 2.5rem; padding: 1.2rem; }
       #qr-wrapper { bottom: 15px; right: 15px; }
@@ -238,12 +223,9 @@
 </head>
 <body>
 
-<!-- ============================================================ -->
-<!-- MODO TV (padrão) -->
-<!-- ============================================================ -->
 <div id="tv-container">
   <div id="display-area">
-    <div id="message-box">Bem-vindo!<br><span style="font-size:2rem;">Escaneie o QR Code</span></div>
+    <div id="message-box">📺 Aguardando mensagem...</div>
     <div id="animation-layer"></div>
   </div>
   <div id="qr-wrapper">
@@ -252,37 +234,37 @@
   </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- MODO CONTROLE (celular) - inicialmente oculto -->
-<!-- ============================================================ -->
 <div id="control-container">
   <h1>📨 Enviar para a TV</h1>
 
-  <!-- ===== TEMA ANIVERSÁRIO ===== -->
   <div class="card">
     <h2>🎂 Aniversário</h2>
     <label>Nome do aniversariante</label>
-    <input type="text" id="birthday-name" placeholder="Ex: João" value="">
-    <button class="btn" onclick="sendBirthday()">🎉 Enviar Feliz Aniversário</button>
+    <input type="text" id="birthday-name" placeholder="Ex: João">
+    <button class="btn" onclick="sendBirthday()">🎉 Enviar com Confetes</button>
   </div>
 
-  <!-- ===== TEMA AMOR ===== -->
   <div class="card">
     <h2>❤️ Mensagem de Amor</h2>
-    <label>Sua mensagem (opcional)</label>
+    <label>Sua mensagem</label>
     <input type="text" id="love-msg" placeholder="Te amo!">
-    <button class="btn" onclick="sendLove()">💖 Enviar</button>
+    <button class="btn" onclick="sendLove()">💖 Enviar com Corações</button>
   </div>
 
-  <!-- ===== MENSAGEM PERSONALIZADA ===== -->
   <div class="card">
-    <h2>✏️ Personalizada</h2>
-    <label>Digite sua mensagem</label>
-    <textarea id="custom-text" placeholder="Escreva algo..."></textarea>
+    <h2>🖍️ Lousa com Giz</h2>
+    <label>Escreva na lousa</label>
+    <input type="text" id="chalk-text" placeholder="Escreva aqui...">
+    <button class="btn" onclick="sendChalk()">📝 Mostrar na Lousa</button>
+  </div>
+
+  <div class="card">
+    <h2>✏️ Mensagem Personalizada</h2>
+    <label>Digite sua mensagem (use emojis!)</label>
+    <textarea id="custom-text" placeholder="Ex: 🍕 Pizza gratis!"></textarea>
     <button class="btn" onclick="sendCustom()">📨 Enviar</button>
   </div>
 
-  <!-- ===== CHAMAR GARÇOM ===== -->
   <div class="card">
     <h2>👨‍🍳 Chamar Garçom</h2>
     <label>Número da mesa</label>
@@ -290,15 +272,13 @@
     <button class="btn btn-secondary" onclick="callWaiter()">🔔 Chamar</button>
   </div>
 
-  <!-- ===== RECLAMAÇÃO ===== -->
   <div class="card">
-    <h2>😤 Reclamação / Sugestão</h2>
+    <h2>😤 Reclamação</h2>
     <label>Descreva o problema</label>
     <textarea id="complaint-text" placeholder="Ex: Pedido atrasou..."></textarea>
     <button class="btn btn-secondary" onclick="sendComplaint()">📢 Enviar</button>
   </div>
 
-  <!-- ===== ENVIAR IMAGEM ===== -->
   <div class="card">
     <h2>🖼️ Enviar Imagem</h2>
     <label>URL da imagem</label>
@@ -310,7 +290,6 @@
     <button class="btn btn-secondary" onclick="sendImageFile()">📤 Enviar Arquivo</button>
   </div>
 
-  <!-- ===== AVALIAÇÃO DO GARÇOM ===== -->
   <div class="card">
     <h2>⭐ Avalie o Garçom</h2>
     <div class="star-rating" id="star-rating">
@@ -323,16 +302,12 @@
     <button class="btn" onclick="sendRating()">⭐ Enviar nota</button>
   </div>
 
-  <!-- Status -->
   <div id="status">🔄 Conectando ao Firebase...</div>
 </div>
 
-<!-- ============================================================ -->
-<!-- JAVASCRIPT - TUDO AQUI (Firestore) -->
-<!-- ============================================================ -->
 <script>
   // =============================================================
-  // CONFIGURAÇÃO DO FIREBASE - COLE SEUS DADOS AQUI
+  // COLOQUE AQUI AS CREDENCIAIS DO SEU PROJETO FIREBASE
   // =============================================================
   const firebaseConfig = {
     apiKey: "SUA_API_KEY",
@@ -343,31 +318,27 @@
     appId: "SEU_APP_ID"
   };
 
-  // Inicializa Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
   // =============================================================
-  // DETECTA MODO: TV (padrão) ou CONTROLE (?mode=control)
+  // MODO
   // =============================================================
   const urlParams = new URLSearchParams(window.location.search);
   const mode = urlParams.get('mode') || 'tv';
 
-  // Referências DOM
   const tvContainer = document.getElementById('tv-container');
   const controlContainer = document.getElementById('control-container');
   const messageBox = document.getElementById('message-box');
   const animLayer = document.getElementById('animation-layer');
-  const qrWrapper = document.getElementById('qr-wrapper');
 
   // =============================================================
-  // MODO TV
+  // TV
   // =============================================================
   if (mode === 'tv') {
     tvContainer.style.display = 'flex';
     controlContainer.style.display = 'none';
 
-    // Gera QR Code com a URL atual + ?mode=control
     const controlUrl = window.location.href.split('?')[0] + '?mode=control';
     new QRCode(document.getElementById('qr-code'), {
       text: controlUrl,
@@ -375,7 +346,7 @@
       height: 130
     });
 
-    // Escuta mensagens do Firestore (última mensagem)
+    // Escuta mensagens
     const messagesRef = db.collection('tv_mensagens')
       .orderBy('timestamp', 'desc')
       .limit(1);
@@ -384,33 +355,27 @@
       if (snapshot.empty) return;
       const doc = snapshot.docs[0];
       const msg = doc.data();
-      if (msg) {
-        displayMessage(msg);
-      }
+      if (msg) displayMessage(msg);
     }, (error) => {
-      console.error('Erro ao ouvir mensagens:', error);
+      console.error('Erro no Firestore:', error);
+      messageBox.innerHTML = '⚠️ Erro de conexão com Firebase';
     });
 
-    // Função para exibir na TV
     function displayMessage(msg) {
-      // Limpa timers anteriores
       if (window._timeout) clearTimeout(window._timeout);
       if (window._animTimeout) clearTimeout(window._animTimeout);
-
-      // Limpa animações e caixa
       animLayer.innerHTML = '';
       messageBox.style.opacity = '1';
       messageBox.style.display = 'flex';
-
-      // Reseta estilos
       messageBox.style.background = 'rgba(0,0,0,0.6)';
       messageBox.style.fontSize = '4rem';
+      messageBox.style.border = '2px solid rgba(255,215,0,0.2)';
+      messageBox.style.borderRadius = '30px';
+      messageBox.style.fontFamily = "'Segoe UI', sans-serif";
 
-      // Tipo de mensagem
       const type = msg.type || 'custom';
 
       switch (type) {
-
         case 'birthday': {
           const name = msg.name || 'amigo(a)';
           messageBox.innerHTML = `
@@ -420,15 +385,26 @@
               <p style="font-size:2rem; color:#ddd;">Que seu dia seja especial!</p>
             </div>
           `;
-          // Garçonzinho animado
+          // Garçom
           animLayer.innerHTML = `
             <div style="position:absolute; bottom:10%; left:5%; font-size:6rem; animation:garcom 2s ease-in-out infinite;">
               👨‍🍳
             </div>
           `;
+          // Confetes
+          for (let i = 0; i < 30; i++) {
+            const el = document.createElement('div');
+            el.className = 'confetti';
+            el.textContent = ['🎉','🎊','⭐','✨','🎈'][Math.floor(Math.random()*5)];
+            el.style.left = Math.random() * 100 + '%';
+            el.style.top = '-10%';
+            el.style.fontSize = (1 + Math.random() * 2) + 'rem';
+            el.style.animationDuration = (3 + Math.random() * 3) + 's';
+            el.style.animationDelay = (Math.random() * 2) + 's';
+            animLayer.appendChild(el);
+          }
           break;
         }
-
         case 'love': {
           const loveMsg = msg.message || 'Te amo!';
           messageBox.innerHTML = `
@@ -437,7 +413,19 @@
               <p style="font-size:3rem; color:#ff6b6b;">${loveMsg}</p>
             </div>
           `;
-          // Efeito explosão após 3s
+          // Corações caindo
+          for (let i = 0; i < 25; i++) {
+            const el = document.createElement('div');
+            el.className = 'heart-fall';
+            el.textContent = ['❤️','💖','💗','💓','♥️'][Math.floor(Math.random()*5)];
+            el.style.left = Math.random() * 100 + '%';
+            el.style.top = '-10%';
+            el.style.fontSize = (1.5 + Math.random() * 2) + 'rem';
+            el.style.animationDuration = (2 + Math.random() * 3) + 's';
+            el.style.animationDelay = (Math.random() * 2) + 's';
+            animLayer.appendChild(el);
+          }
+          // Explosão após 3s
           window._animTimeout = setTimeout(() => {
             animLayer.innerHTML = `
               <div style="font-size:10rem; animation:explode 2s forwards; opacity:0;">
@@ -447,13 +435,25 @@
           }, 3000);
           break;
         }
-
-        case 'custom': {
-          const text = msg.text || 'Mensagem personalizada';
-          messageBox.innerHTML = `<div>📝 ${text}</div>`;
+        case 'chalk': {
+          const text = msg.text || 'Escreva algo...';
+          messageBox.innerHTML = `
+            <div class="blackboard" style="font-size:3.5rem; color:#f0f0c0; text-shadow: 2px 2px 0 #4a6a4a;">
+              ${text}
+            </div>
+          `;
+          messageBox.style.background = 'transparent';
+          messageBox.style.border = 'none';
+          messageBox.style.borderRadius = '0';
+          messageBox.style.backdropFilter = 'none';
+          messageBox.style.padding = '0';
           break;
         }
-
+        case 'custom': {
+          const text = msg.text || 'Mensagem personalizada';
+          messageBox.innerHTML = `<div style="font-size:3rem;">${text}</div>`;
+          break;
+        }
         case 'waiter': {
           const table = msg.table || '?';
           messageBox.innerHTML = `
@@ -465,7 +465,6 @@
           `;
           break;
         }
-
         case 'complaint': {
           const text = msg.text || 'Reclamação';
           messageBox.innerHTML = `
@@ -476,7 +475,6 @@
           `;
           break;
         }
-
         case 'image': {
           const url = msg.url;
           if (url) {
@@ -485,7 +483,6 @@
           }
           break;
         }
-
         case 'rating': {
           const stars = msg.stars || 0;
           const starStr = '⭐'.repeat(stars);
@@ -497,37 +494,37 @@
           `;
           break;
         }
-
-        default: {
+        default:
           messageBox.innerHTML = `<div>${msg.text || 'Mensagem'}</div>`;
-        }
       }
 
-      // Auto-esconde após 10 segundos (exceto imagens e ratings que ficam mais tempo)
       const duration = (type === 'image' || type === 'rating') ? 15000 : 10000;
       window._timeout = setTimeout(() => {
         messageBox.style.opacity = '0';
         setTimeout(() => {
-          messageBox.innerHTML = 'Bem-vindo!<br><span style="font-size:2rem;">Escaneie o QR Code</span>';
+          messageBox.innerHTML = '📺 Aguardando mensagem...';
           messageBox.style.opacity = '1';
           messageBox.style.background = 'rgba(0,0,0,0.6)';
+          messageBox.style.border = '2px solid rgba(255,215,0,0.2)';
+          messageBox.style.borderRadius = '30px';
+          messageBox.style.fontFamily = "'Segoe UI', sans-serif";
           messageBox.style.fontSize = '4rem';
+          messageBox.style.padding = '2rem 3rem';
+          messageBox.style.backdropFilter = 'blur(8px)';
           animLayer.innerHTML = '';
         }, 400);
       }, duration);
     }
-
-  } // fim modo TV
+  }
 
   // =============================================================
-  // MODO CONTROLE (celular)
+  // CONTROLE
   // =============================================================
   if (mode === 'control') {
     tvContainer.style.display = 'none';
     controlContainer.style.display = 'block';
     document.getElementById('status').textContent = '✅ Conectado ao Firestore';
 
-    // ===== Estrelas =====
     let selectedStars = 0;
     document.querySelectorAll('#star-rating span').forEach(el => {
       el.addEventListener('click', () => {
@@ -539,92 +536,72 @@
       });
     });
 
-    // ===== Funções de envio (Firestore) =====
     function sendToFirestore(data) {
-      const ref = db.collection('tv_mensagens');
-      // Adiciona timestamp para ordenação
-      const payload = {
-        ...data,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      };
-      ref.add(payload)
+      const payload = { ...data, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+      db.collection('tv_mensagens').add(payload)
         .then(() => {
-          console.log('Mensagem enviada');
-          const status = document.getElementById('status');
-          status.textContent = '✅ Mensagem enviada!';
-          setTimeout(() => { status.textContent = '✅ Conectado ao Firestore'; }, 2000);
+          document.getElementById('status').textContent = '✅ Mensagem enviada!';
+          setTimeout(() => { document.getElementById('status').textContent = '✅ Conectado ao Firestore'; }, 2000);
         })
         .catch(err => {
           console.error(err);
-          document.getElementById('status').textContent = '❌ Erro ao enviar';
+          document.getElementById('status').textContent = '❌ Erro: ' + err.message;
         });
     }
 
     window.sendBirthday = function() {
       const name = document.getElementById('birthday-name').value.trim() || 'amigo';
-      sendToFirestore({ type: 'birthday', name: name });
+      sendToFirestore({ type: 'birthday', name });
     };
-
     window.sendLove = function() {
       const msg = document.getElementById('love-msg').value.trim() || 'Te amo!';
       sendToFirestore({ type: 'love', message: msg });
     };
-
+    window.sendChalk = function() {
+      const text = document.getElementById('chalk-text').value.trim() || 'Escreva algo...';
+      sendToFirestore({ type: 'chalk', text });
+    };
     window.sendCustom = function() {
       const text = document.getElementById('custom-text').value.trim() || 'Mensagem personalizada';
-      sendToFirestore({ type: 'custom', text: text });
+      sendToFirestore({ type: 'custom', text });
     };
-
     window.callWaiter = function() {
       const table = document.getElementById('table-number').value.trim() || '?';
-      sendToFirestore({ type: 'waiter', table: table });
+      sendToFirestore({ type: 'waiter', table });
     };
-
     window.sendComplaint = function() {
       const text = document.getElementById('complaint-text').value.trim() || 'Reclamação';
-      sendToFirestore({ type: 'complaint', text: text });
+      sendToFirestore({ type: 'complaint', text });
     };
-
     window.sendImageUrl = function() {
       const url = document.getElementById('image-url').value.trim();
-      if (!url) { alert('Digite uma URL de imagem'); return; }
-      sendToFirestore({ type: 'image', url: url });
+      if (!url) { alert('Digite uma URL'); return; }
+      sendToFirestore({ type: 'image', url });
     };
-
     window.sendImageFile = function() {
       const fileInput = document.getElementById('image-upload');
       const file = fileInput.files[0];
       if (!file) { alert('Selecione uma imagem'); return; }
       const reader = new FileReader();
       reader.onload = (e) => {
-        const base64 = e.target.result;
-        sendToFirestore({ type: 'image', url: base64 });
+        sendToFirestore({ type: 'image', url: e.target.result });
       };
       reader.readAsDataURL(file);
     };
-
     window.sendRating = function() {
       if (selectedStars === 0) { alert('Selecione uma nota'); return; }
       sendToFirestore({ type: 'rating', stars: selectedStars });
     };
 
-    // Verifica conexão com Firestore (apenas para status)
+    // Verifica conexão
     db.collection('tv_mensagens').limit(1).get()
-      .then(() => {
-        document.getElementById('status').textContent = '✅ Conectado ao Firestore';
-      })
-      .catch(() => {
-        document.getElementById('status').textContent = '❌ Erro de conexão';
-      });
+      .then(() => { document.getElementById('status').textContent = '✅ Conectado ao Firestore'; })
+      .catch(() => { document.getElementById('status').textContent = '❌ Erro de conexão'; });
   }
 
-  // =============================================================
-  // CASO NENHUM MODO SEJA DETECTADO (fallback para TV)
-  // =============================================================
   if (mode !== 'tv' && mode !== 'control') {
     window.location.href = window.location.href.split('?')[0];
   }
-
 </script>
 </body>
 </html>
