@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Restaurante Interativo</title>
 
-  <!-- Firebase SDK (versão compatível) -->
+  <!-- Firebase SDK (modular compat para usar com Firestore) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -328,7 +328,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- JAVASCRIPT - TUDO AQUI -->
+<!-- JAVASCRIPT - TUDO AQUI (Firestore) -->
 <!-- ============================================================ -->
 <script>
   // =============================================================
@@ -337,7 +337,6 @@
   const firebaseConfig = {
     apiKey: "SUA_API_KEY",
     authDomain: "SEU_PROJETO.firebaseapp.com",
-    databaseURL: "https://SEU_PROJETO-default-rtdb.firebaseio.com",
     projectId: "SEU_PROJETO",
     storageBucket: "SEU_PROJETO.appspot.com",
     messagingSenderId: "SEU_SENDER_ID",
@@ -346,7 +345,7 @@
 
   // Inicializa Firebase
   firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  const db = firebase.firestore();
 
   // =============================================================
   // DETECTA MODO: TV (padrão) ou CONTROLE (?mode=control)
@@ -376,18 +375,20 @@
       height: 130
     });
 
-    // Escuta mensagens do Firebase
-    const messagesRef = db.ref('messages');
-    messagesRef.on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
-      // Pega a última mensagem (mais recente)
-      const keys = Object.keys(data);
-      const lastKey = keys[keys.length - 1];
-      const msg = data[lastKey];
+    // Escuta mensagens do Firestore (última mensagem)
+    const messagesRef = db.collection('tv_mensagens')
+      .orderBy('timestamp', 'desc')
+      .limit(1);
+
+    messagesRef.onSnapshot((snapshot) => {
+      if (snapshot.empty) return;
+      const doc = snapshot.docs[0];
+      const msg = doc.data();
       if (msg) {
         displayMessage(msg);
       }
+    }, (error) => {
+      console.error('Erro ao ouvir mensagens:', error);
     });
 
     // Função para exibir na TV
@@ -524,7 +525,7 @@
   if (mode === 'control') {
     tvContainer.style.display = 'none';
     controlContainer.style.display = 'block';
-    document.getElementById('status').textContent = '✅ Conectado ao Firebase';
+    document.getElementById('status').textContent = '✅ Conectado ao Firestore';
 
     // ===== Estrelas =====
     let selectedStars = 0;
@@ -538,50 +539,56 @@
       });
     });
 
-    // ===== Funções de envio =====
-    function sendToFirebase(data) {
-      const ref = db.ref('messages');
-      ref.push(data).then(() => {
-        console.log('Mensagem enviada');
-        // Feedback visual
-        const status = document.getElementById('status');
-        status.textContent = '✅ Mensagem enviada!';
-        setTimeout(() => { status.textContent = '✅ Conectado ao Firebase'; }, 2000);
-      }).catch(err => {
-        console.error(err);
-        document.getElementById('status').textContent = '❌ Erro ao enviar';
-      });
+    // ===== Funções de envio (Firestore) =====
+    function sendToFirestore(data) {
+      const ref = db.collection('tv_mensagens');
+      // Adiciona timestamp para ordenação
+      const payload = {
+        ...data,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      ref.add(payload)
+        .then(() => {
+          console.log('Mensagem enviada');
+          const status = document.getElementById('status');
+          status.textContent = '✅ Mensagem enviada!';
+          setTimeout(() => { status.textContent = '✅ Conectado ao Firestore'; }, 2000);
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('status').textContent = '❌ Erro ao enviar';
+        });
     }
 
     window.sendBirthday = function() {
       const name = document.getElementById('birthday-name').value.trim() || 'amigo';
-      sendToFirebase({ type: 'birthday', name: name });
+      sendToFirestore({ type: 'birthday', name: name });
     };
 
     window.sendLove = function() {
       const msg = document.getElementById('love-msg').value.trim() || 'Te amo!';
-      sendToFirebase({ type: 'love', message: msg });
+      sendToFirestore({ type: 'love', message: msg });
     };
 
     window.sendCustom = function() {
       const text = document.getElementById('custom-text').value.trim() || 'Mensagem personalizada';
-      sendToFirebase({ type: 'custom', text: text });
+      sendToFirestore({ type: 'custom', text: text });
     };
 
     window.callWaiter = function() {
       const table = document.getElementById('table-number').value.trim() || '?';
-      sendToFirebase({ type: 'waiter', table: table });
+      sendToFirestore({ type: 'waiter', table: table });
     };
 
     window.sendComplaint = function() {
       const text = document.getElementById('complaint-text').value.trim() || 'Reclamação';
-      sendToFirebase({ type: 'complaint', text: text });
+      sendToFirestore({ type: 'complaint', text: text });
     };
 
     window.sendImageUrl = function() {
       const url = document.getElementById('image-url').value.trim();
       if (!url) { alert('Digite uma URL de imagem'); return; }
-      sendToFirebase({ type: 'image', url: url });
+      sendToFirestore({ type: 'image', url: url });
     };
 
     window.sendImageFile = function() {
@@ -591,36 +598,33 @@
       const reader = new FileReader();
       reader.onload = (e) => {
         const base64 = e.target.result;
-        sendToFirebase({ type: 'image', url: base64 });
+        sendToFirestore({ type: 'image', url: base64 });
       };
       reader.readAsDataURL(file);
     };
 
     window.sendRating = function() {
       if (selectedStars === 0) { alert('Selecione uma nota'); return; }
-      sendToFirebase({ type: 'rating', stars: selectedStars });
+      sendToFirestore({ type: 'rating', stars: selectedStars });
     };
 
-    // Verifica conexão com Firebase
-    db.ref('.info/connected').on('value', (snap) => {
-      const status = document.getElementById('status');
-      if (snap.val() === true) {
-        status.textContent = '✅ Conectado ao Firebase';
-      } else {
-        status.textContent = '❌ Desconectado';
-      }
-    });
+    // Verifica conexão com Firestore (apenas para status)
+    db.collection('tv_mensagens').limit(1).get()
+      .then(() => {
+        document.getElementById('status').textContent = '✅ Conectado ao Firestore';
+      })
+      .catch(() => {
+        document.getElementById('status').textContent = '❌ Erro de conexão';
+      });
   }
 
   // =============================================================
   // CASO NENHUM MODO SEJA DETECTADO (fallback para TV)
   // =============================================================
   if (mode !== 'tv' && mode !== 'control') {
-    // Redireciona para modo TV (sem parâmetro)
     window.location.href = window.location.href.split('?')[0];
   }
 
 </script>
-
 </body>
 </html>
