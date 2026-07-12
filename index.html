@@ -3,222 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Restaurante Interativo</title>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <title>Restaurante Interativo (Fallback)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #0a0a1a;
-      color: #fff;
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
-    }
-    #tv-container {
-      width: 100vw;
-      height: 100vh;
-      position: relative;
-      background: radial-gradient(circle at center, #1a1a2e, #0a0a1a);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #display-area {
-      width: 90%;
-      height: 80%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    #message-box {
-      font-size: 4rem;
-      text-align: center;
-      padding: 2rem 3rem;
-      background: rgba(0,0,0,0.6);
-      border-radius: 30px;
-      backdrop-filter: blur(8px);
-      border: 2px solid rgba(255,215,0,0.2);
-      transition: opacity 0.4s;
-      max-width: 85%;
-      word-wrap: break-word;
-      z-index: 2;
-      min-width: 300px;
-      min-height: 200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    body { font-family: 'Segoe UI', sans-serif; background: #0a0a1a; color: #fff; overflow: hidden; height: 100vh; width: 100vw; }
+    #tv-container { width: 100vw; height: 100vh; position: relative; background: radial-gradient(circle at center, #1a1a2e, #0a0a1a); display: flex; align-items: center; justify-content: center; }
+    #display-area { width: 90%; height: 80%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    #message-box { font-size: 4rem; text-align: center; padding: 2rem 3rem; background: rgba(0,0,0,0.6); border-radius: 30px; backdrop-filter: blur(8px); border: 2px solid rgba(255,215,0,0.2); transition: opacity 0.4s; max-width: 85%; word-wrap: break-word; z-index: 2; min-width: 300px; min-height: 200px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     #message-box img { max-width: 80vw; max-height: 70vh; border-radius: 20px; }
-    #animation-layer {
-      position: absolute;
-      top:0; left:0;
-      width:100%; height:100%;
-      pointer-events: none;
-      z-index: 1;
-    }
-    #qr-wrapper {
-      position: absolute;
-      bottom: 30px;
-      right: 30px;
-      background: rgba(255,255,255,0.92);
-      padding: 12px 12px 8px;
-      border-radius: 16px;
-      text-align: center;
-      color: #222;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-      z-index: 10;
-    }
+    #animation-layer { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 1; }
+    #qr-wrapper { position: absolute; bottom: 30px; right: 30px; background: rgba(255,255,255,0.92); padding: 12px 12px 8px; border-radius: 16px; text-align: center; color: #222; box-shadow: 0 8px 30px rgba(0,0,0,0.6); z-index: 10; }
     #qr-wrapper p { font-size: 0.75rem; margin-top: 6px; font-weight: 600; }
     #qr-code { width: 130px; height: 130px; }
-
-    #control-container {
-      display: none;
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
-      background: #14142e;
-      min-height: 100vh;
-      overflow-y: auto;
-      color: #eee;
-    }
-    #control-container h1 {
-      text-align: center;
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-      color: #f7d44a;
-      border-bottom: 2px solid #2a2a4a;
-      padding-bottom: 12px;
-    }
-    .card {
-      background: #1f1f3a;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 18px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    .card h2 {
-      font-size: 1.2rem;
-      color: #f7d44a;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    #debug-log { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: #0f0; font-family: monospace; font-size: 0.8rem; padding: 8px; border-radius: 8px; max-width: 300px; max-height: 100px; overflow-y: auto; z-index: 20; }
+    #control-container { display: none; max-width: 500px; margin: 0 auto; padding: 20px 16px 40px; background: #14142e; min-height: 100vh; overflow-y: auto; color: #eee; }
+    #control-container h1 { text-align: center; font-size: 1.8rem; margin-bottom: 20px; color: #f7d44a; border-bottom: 2px solid #2a2a4a; padding-bottom: 12px; }
+    .card { background: #1f1f3a; border-radius: 16px; padding: 16px; margin-bottom: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .card h2 { font-size: 1.2rem; color: #f7d44a; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     .card label { display: block; font-size: 0.9rem; margin: 8px 0 4px; color: #aaa; }
-    .card input, .card textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: none;
-      border-radius: 10px;
-      background: #2c2c50;
-      color: #fff;
-      font-size: 1rem;
-      margin-bottom: 6px;
-      outline: 1px solid transparent;
-      transition: 0.2s;
-    }
+    .card input, .card textarea { width: 100%; padding: 10px 12px; border: none; border-radius: 10px; background: #2c2c50; color: #fff; font-size: 1rem; margin-bottom: 6px; outline: 1px solid transparent; transition: 0.2s; }
     .card input:focus, .card textarea:focus { outline-color: #f7d44a; }
     .card textarea { resize: vertical; min-height: 50px; font-family: inherit; }
-    .btn {
-      display: inline-block;
-      background: #f7d44a;
-      color: #1a1a2e;
-      font-weight: bold;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 30px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.2s;
-      width: 100%;
-      margin-top: 6px;
-      text-align: center;
-    }
+    .btn { display: inline-block; background: #f7d44a; color: #1a1a2e; font-weight: bold; padding: 10px 18px; border: none; border-radius: 30px; font-size: 1rem; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 6px; text-align: center; }
     .btn:hover { background: #e6c03a; transform: scale(0.98); }
     .btn-secondary { background: #4a4a7a; color: #fff; }
     .btn-secondary:hover { background: #5a5a8a; }
-    .star-rating {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      font-size: 2.8rem;
-      cursor: pointer;
-      margin: 10px 0;
-    }
+    .star-rating { display: flex; gap: 8px; justify-content: center; font-size: 2.8rem; cursor: pointer; margin: 10px 0; }
     .star-rating span { filter: grayscale(1); transition: 0.2s; user-select: none; }
     .star-rating span.active { filter: grayscale(0); transform: scale(1.2); }
-    #status {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.9rem;
-      color: #8af;
-      border-top: 1px solid #2a2a4a;
-      padding-top: 16px;
-    }
-    @keyframes garcom {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(5deg); }
-    }
-    @keyframes heartbeat {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.4); }
-    }
-    @keyframes explode {
-      0% { opacity:0; transform: scale(0.5); }
-      50% { opacity:1; transform: scale(2); }
-      100% { opacity:0; transform: scale(3); }
-    }
-    @keyframes fall {
-      0% { transform: translateY(-100px) rotate(0deg); opacity:1; }
-      100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
-    }
-    .confetti {
-      position: absolute;
-      font-size: 2rem;
-      animation: fall 4s linear forwards;
-      pointer-events: none;
-    }
-    .heart-fall {
-      position: absolute;
-      font-size: 2.5rem;
-      animation: fall 3s ease-in forwards;
-      pointer-events: none;
-    }
-    .blackboard {
-      background: #1a3a1a;
-      padding: 30px 40px;
-      border-radius: 20px;
-      border: 8px solid #6b4f3c;
-      box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
-      color: #fff;
-      font-family: 'Chalkboard', cursive;
-      font-size: 3rem;
-      text-align: center;
-      min-width: 60%;
-      position: relative;
-    }
-    .blackboard::before {
-      content: '';
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      border: 2px dashed rgba(255,255,255,0.1);
-      border-radius: 10px;
-      pointer-events: none;
-    }
-    @media (max-width: 600px) {
-      #message-box { font-size: 2.5rem; padding: 1.2rem; }
-      #qr-wrapper { bottom: 15px; right: 15px; }
-      #qr-code { width: 90px; height: 90px; }
-      #qr-wrapper p { font-size: 0.6rem; }
-    }
+    #status { text-align: center; margin-top: 20px; font-size: 0.9rem; color: #8af; border-top: 1px solid #2a2a4a; padding-top: 16px; }
+    @keyframes garcom { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
+    @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.4); } }
+    @keyframes explode { 0% { opacity:0; transform: scale(0.5); } 50% { opacity:1; transform: scale(2); } 100% { opacity:0; transform: scale(3); } }
+    @keyframes fall { 0% { transform: translateY(-100px) rotate(0deg); opacity:1; } 100% { transform: translateY(100vh) rotate(720deg); opacity:0; } }
+    .confetti { position: absolute; font-size: 2rem; animation: fall 4s linear forwards; pointer-events: none; }
+    .heart-fall { position: absolute; font-size: 2.5rem; animation: fall 3s ease-in forwards; pointer-events: none; }
+    .blackboard { background: #1a3a1a; padding: 30px 40px; border-radius: 20px; border: 8px solid #6b4f3c; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); color: #fff; font-family: 'Chalkboard', cursive; font-size: 3rem; text-align: center; min-width: 60%; position: relative; }
+    .blackboard::before { content: ''; position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border: 2px dashed rgba(255,255,255,0.1); border-radius: 10px; pointer-events: none; }
+    @media (max-width: 600px) { #message-box { font-size: 2.5rem; padding: 1.2rem; } #qr-wrapper { bottom: 15px; right: 15px; } #qr-code { width: 90px; height: 90px; } #qr-wrapper p { font-size: 0.6rem; } }
   </style>
 </head>
 <body>
@@ -232,53 +55,47 @@
     <div id="qr-code"></div>
     <p>📱 Escaneie para enviar</p>
   </div>
+  <div id="debug-log">🔍 Log: Iniciando (BroadcastChannel)...</div>
 </div>
 
 <div id="control-container">
   <h1>📨 Enviar para a TV</h1>
-
   <div class="card">
     <h2>🎂 Aniversário</h2>
     <label>Nome do aniversariante</label>
     <input type="text" id="birthday-name" placeholder="Ex: João">
     <button class="btn" onclick="sendBirthday()">🎉 Enviar com Confetes</button>
   </div>
-
   <div class="card">
     <h2>❤️ Mensagem de Amor</h2>
     <label>Sua mensagem</label>
     <input type="text" id="love-msg" placeholder="Te amo!">
     <button class="btn" onclick="sendLove()">💖 Enviar com Corações</button>
   </div>
-
   <div class="card">
     <h2>🖍️ Lousa com Giz</h2>
     <label>Escreva na lousa</label>
     <input type="text" id="chalk-text" placeholder="Escreva aqui...">
     <button class="btn" onclick="sendChalk()">📝 Mostrar na Lousa</button>
   </div>
-
   <div class="card">
     <h2>✏️ Mensagem Personalizada</h2>
     <label>Digite sua mensagem (use emojis!)</label>
     <textarea id="custom-text" placeholder="Ex: 🍕 Pizza gratis!"></textarea>
     <button class="btn" onclick="sendCustom()">📨 Enviar</button>
   </div>
-
   <div class="card">
     <h2>👨‍🍳 Chamar Garçom</h2>
     <label>Número da mesa</label>
     <input type="text" id="table-number" placeholder="Ex: 12">
     <button class="btn btn-secondary" onclick="callWaiter()">🔔 Chamar</button>
   </div>
-
   <div class="card">
     <h2>😤 Reclamação</h2>
     <label>Descreva o problema</label>
     <textarea id="complaint-text" placeholder="Ex: Pedido atrasou..."></textarea>
     <button class="btn btn-secondary" onclick="sendComplaint()">📢 Enviar</button>
   </div>
-
   <div class="card">
     <h2>🖼️ Enviar Imagem</h2>
     <label>URL da imagem</label>
@@ -289,7 +106,6 @@
     <input type="file" id="image-upload" accept="image/*" style="background:transparent; color:#aaa;">
     <button class="btn btn-secondary" onclick="sendImageFile()">📤 Enviar Arquivo</button>
   </div>
-
   <div class="card">
     <h2>⭐ Avalie o Garçom</h2>
     <div class="star-rating" id="star-rating">
@@ -301,29 +117,10 @@
     </div>
     <button class="btn" onclick="sendRating()">⭐ Enviar nota</button>
   </div>
-
-  <div id="status">🔄 Conectando ao Firebase...</div>
+  <div id="status">🔄 Modo fallback (BroadcastChannel)</div>
 </div>
 
 <script>
-  // =============================================================
-  // COLOQUE AQUI AS CREDENCIAIS DO SEU PROJETO FIREBASE
-  // =============================================================
-  const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_PROJETO.firebaseapp.com",
-    projectId: "SEU_PROJETO",
-    storageBucket: "SEU_PROJETO.appspot.com",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SEU_APP_ID"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  // =============================================================
-  // MODO
-  // =============================================================
   const urlParams = new URLSearchParams(window.location.search);
   const mode = urlParams.get('mode') || 'tv';
 
@@ -331,13 +128,22 @@
   const controlContainer = document.getElementById('control-container');
   const messageBox = document.getElementById('message-box');
   const animLayer = document.getElementById('animation-layer');
+  const debugLog = document.getElementById('debug-log');
 
-  // =============================================================
-  // TV
-  // =============================================================
+  function log(msg) {
+    console.log(msg);
+    if (debugLog) {
+      debugLog.innerHTML += '\n' + msg;
+      debugLog.scrollTop = debugLog.scrollHeight;
+    }
+  }
+
+  const channel = new BroadcastChannel('restaurante_tv');
+
   if (mode === 'tv') {
     tvContainer.style.display = 'flex';
     controlContainer.style.display = 'none';
+    log('Modo TV (BroadcastChannel)');
 
     const controlUrl = window.location.href.split('?')[0] + '?mode=control';
     new QRCode(document.getElementById('qr-code'), {
@@ -345,23 +151,16 @@
       width: 130,
       height: 130
     });
+    log('QR Code: ' + controlUrl);
 
-    // Escuta mensagens
-    const messagesRef = db.collection('tv_mensagens')
-      .orderBy('timestamp', 'desc')
-      .limit(1);
-
-    messagesRef.onSnapshot((snapshot) => {
-      if (snapshot.empty) return;
-      const doc = snapshot.docs[0];
-      const msg = doc.data();
+    channel.onmessage = (event) => {
+      const msg = event.data;
+      log('Mensagem recebida: ' + JSON.stringify(msg));
       if (msg) displayMessage(msg);
-    }, (error) => {
-      console.error('Erro no Firestore:', error);
-      messageBox.innerHTML = '⚠️ Erro de conexão com Firebase';
-    });
+    };
 
     function displayMessage(msg) {
+      log('Exibindo: ' + JSON.stringify(msg));
       if (window._timeout) clearTimeout(window._timeout);
       if (window._animTimeout) clearTimeout(window._animTimeout);
       animLayer.innerHTML = '';
@@ -385,13 +184,11 @@
               <p style="font-size:2rem; color:#ddd;">Que seu dia seja especial!</p>
             </div>
           `;
-          // Garçom
           animLayer.innerHTML = `
             <div style="position:absolute; bottom:10%; left:5%; font-size:6rem; animation:garcom 2s ease-in-out infinite;">
               👨‍🍳
             </div>
           `;
-          // Confetes
           for (let i = 0; i < 30; i++) {
             const el = document.createElement('div');
             el.className = 'confetti';
@@ -413,7 +210,6 @@
               <p style="font-size:3rem; color:#ff6b6b;">${loveMsg}</p>
             </div>
           `;
-          // Corações caindo
           for (let i = 0; i < 25; i++) {
             const el = document.createElement('div');
             el.className = 'heart-fall';
@@ -425,7 +221,6 @@
             el.style.animationDelay = (Math.random() * 2) + 's';
             animLayer.appendChild(el);
           }
-          // Explosão após 3s
           window._animTimeout = setTimeout(() => {
             animLayer.innerHTML = `
               <div style="font-size:10rem; animation:explode 2s forwards; opacity:0;">
@@ -517,13 +312,10 @@
     }
   }
 
-  // =============================================================
-  // CONTROLE
-  // =============================================================
   if (mode === 'control') {
     tvContainer.style.display = 'none';
     controlContainer.style.display = 'block';
-    document.getElementById('status').textContent = '✅ Conectado ao Firestore';
+    document.getElementById('status').textContent = '📡 Modo fallback (BroadcastChannel)';
 
     let selectedStars = 0;
     document.querySelectorAll('#star-rating span').forEach(el => {
@@ -536,47 +328,40 @@
       });
     });
 
-    function sendToFirestore(data) {
-      const payload = { ...data, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-      db.collection('tv_mensagens').add(payload)
-        .then(() => {
-          document.getElementById('status').textContent = '✅ Mensagem enviada!';
-          setTimeout(() => { document.getElementById('status').textContent = '✅ Conectado ao Firestore'; }, 2000);
-        })
-        .catch(err => {
-          console.error(err);
-          document.getElementById('status').textContent = '❌ Erro: ' + err.message;
-        });
+    function sendToChannel(data) {
+      channel.postMessage(data);
+      document.getElementById('status').textContent = '✅ Mensagem enviada!';
+      setTimeout(() => { document.getElementById('status').textContent = '📡 Modo fallback (BroadcastChannel)'; }, 2000);
     }
 
     window.sendBirthday = function() {
       const name = document.getElementById('birthday-name').value.trim() || 'amigo';
-      sendToFirestore({ type: 'birthday', name });
+      sendToChannel({ type: 'birthday', name });
     };
     window.sendLove = function() {
       const msg = document.getElementById('love-msg').value.trim() || 'Te amo!';
-      sendToFirestore({ type: 'love', message: msg });
+      sendToChannel({ type: 'love', message: msg });
     };
     window.sendChalk = function() {
       const text = document.getElementById('chalk-text').value.trim() || 'Escreva algo...';
-      sendToFirestore({ type: 'chalk', text });
+      sendToChannel({ type: 'chalk', text });
     };
     window.sendCustom = function() {
       const text = document.getElementById('custom-text').value.trim() || 'Mensagem personalizada';
-      sendToFirestore({ type: 'custom', text });
+      sendToChannel({ type: 'custom', text });
     };
     window.callWaiter = function() {
       const table = document.getElementById('table-number').value.trim() || '?';
-      sendToFirestore({ type: 'waiter', table });
+      sendToChannel({ type: 'waiter', table });
     };
     window.sendComplaint = function() {
       const text = document.getElementById('complaint-text').value.trim() || 'Reclamação';
-      sendToFirestore({ type: 'complaint', text });
+      sendToChannel({ type: 'complaint', text });
     };
     window.sendImageUrl = function() {
       const url = document.getElementById('image-url').value.trim();
       if (!url) { alert('Digite uma URL'); return; }
-      sendToFirestore({ type: 'image', url });
+      sendToChannel({ type: 'image', url });
     };
     window.sendImageFile = function() {
       const fileInput = document.getElementById('image-upload');
@@ -584,19 +369,14 @@
       if (!file) { alert('Selecione uma imagem'); return; }
       const reader = new FileReader();
       reader.onload = (e) => {
-        sendToFirestore({ type: 'image', url: e.target.result });
+        sendToChannel({ type: 'image', url: e.target.result });
       };
       reader.readAsDataURL(file);
     };
     window.sendRating = function() {
       if (selectedStars === 0) { alert('Selecione uma nota'); return; }
-      sendToFirestore({ type: 'rating', stars: selectedStars });
+      sendToChannel({ type: 'rating', stars: selectedStars });
     };
-
-    // Verifica conexão
-    db.collection('tv_mensagens').limit(1).get()
-      .then(() => { document.getElementById('status').textContent = '✅ Conectado ao Firestore'; })
-      .catch(() => { document.getElementById('status').textContent = '❌ Erro de conexão'; });
   }
 
   if (mode !== 'tv' && mode !== 'control') {
