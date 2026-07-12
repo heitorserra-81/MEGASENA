@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Restaurante Interativo (Fallback)</title>
+  <title>Restaurante Interativo</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -16,7 +18,7 @@
     #qr-wrapper { position: absolute; bottom: 30px; right: 30px; background: rgba(255,255,255,0.92); padding: 12px 12px 8px; border-radius: 16px; text-align: center; color: #222; box-shadow: 0 8px 30px rgba(0,0,0,0.6); z-index: 10; }
     #qr-wrapper p { font-size: 0.75rem; margin-top: 6px; font-weight: 600; }
     #qr-code { width: 130px; height: 130px; }
-    #debug-log { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: #0f0; font-family: monospace; font-size: 0.8rem; padding: 8px; border-radius: 8px; max-width: 300px; max-height: 100px; overflow-y: auto; z-index: 20; }
+    #debug-log { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: #0f0; font-family: monospace; font-size: 0.8rem; padding: 8px; border-radius: 8px; max-width: 300px; max-height: 150px; overflow-y: auto; z-index: 20; white-space: pre-wrap; }
     #control-container { display: none; max-width: 500px; margin: 0 auto; padding: 20px 16px 40px; background: #14142e; min-height: 100vh; overflow-y: auto; color: #eee; }
     #control-container h1 { text-align: center; font-size: 1.8rem; margin-bottom: 20px; color: #f7d44a; border-bottom: 2px solid #2a2a4a; padding-bottom: 12px; }
     .card { background: #1f1f3a; border-radius: 16px; padding: 16px; margin-bottom: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
@@ -55,72 +57,38 @@
     <div id="qr-code"></div>
     <p>📱 Escaneie para enviar</p>
   </div>
-  <div id="debug-log">🔍 Log: Iniciando (BroadcastChannel)...</div>
+  <div id="debug-log">🔍 Iniciando...</div>
 </div>
 
 <div id="control-container">
   <h1>📨 Enviar para a TV</h1>
-  <div class="card">
-    <h2>🎂 Aniversário</h2>
-    <label>Nome do aniversariante</label>
-    <input type="text" id="birthday-name" placeholder="Ex: João">
-    <button class="btn" onclick="sendBirthday()">🎉 Enviar com Confetes</button>
-  </div>
-  <div class="card">
-    <h2>❤️ Mensagem de Amor</h2>
-    <label>Sua mensagem</label>
-    <input type="text" id="love-msg" placeholder="Te amo!">
-    <button class="btn" onclick="sendLove()">💖 Enviar com Corações</button>
-  </div>
-  <div class="card">
-    <h2>🖍️ Lousa com Giz</h2>
-    <label>Escreva na lousa</label>
-    <input type="text" id="chalk-text" placeholder="Escreva aqui...">
-    <button class="btn" onclick="sendChalk()">📝 Mostrar na Lousa</button>
-  </div>
-  <div class="card">
-    <h2>✏️ Mensagem Personalizada</h2>
-    <label>Digite sua mensagem (use emojis!)</label>
-    <textarea id="custom-text" placeholder="Ex: 🍕 Pizza gratis!"></textarea>
-    <button class="btn" onclick="sendCustom()">📨 Enviar</button>
-  </div>
-  <div class="card">
-    <h2>👨‍🍳 Chamar Garçom</h2>
-    <label>Número da mesa</label>
-    <input type="text" id="table-number" placeholder="Ex: 12">
-    <button class="btn btn-secondary" onclick="callWaiter()">🔔 Chamar</button>
-  </div>
-  <div class="card">
-    <h2>😤 Reclamação</h2>
-    <label>Descreva o problema</label>
-    <textarea id="complaint-text" placeholder="Ex: Pedido atrasou..."></textarea>
-    <button class="btn btn-secondary" onclick="sendComplaint()">📢 Enviar</button>
-  </div>
-  <div class="card">
-    <h2>🖼️ Enviar Imagem</h2>
-    <label>URL da imagem</label>
-    <input type="text" id="image-url" placeholder="https://exemplo.com/foto.jpg">
-    <button class="btn btn-secondary" onclick="sendImageUrl()">📎 Enviar URL</button>
-    <hr style="margin:12px 0; border-color:#2a2a4a;">
-    <label>Ou envie um arquivo</label>
-    <input type="file" id="image-upload" accept="image/*" style="background:transparent; color:#aaa;">
-    <button class="btn btn-secondary" onclick="sendImageFile()">📤 Enviar Arquivo</button>
-  </div>
-  <div class="card">
-    <h2>⭐ Avalie o Garçom</h2>
-    <div class="star-rating" id="star-rating">
-      <span data-star="1">⭐</span>
-      <span data-star="2">⭐</span>
-      <span data-star="3">⭐</span>
-      <span data-star="4">⭐</span>
-      <span data-star="5">⭐</span>
-    </div>
-    <button class="btn" onclick="sendRating()">⭐ Enviar nota</button>
-  </div>
-  <div id="status">🔄 Modo fallback (BroadcastChannel)</div>
+  <div class="card"><h2>🎂 Aniversário</h2><label>Nome</label><input type="text" id="birthday-name" placeholder="João"><button class="btn" onclick="sendBirthday()">🎉 Enviar</button></div>
+  <div class="card"><h2>❤️ Amor</h2><label>Mensagem</label><input type="text" id="love-msg" placeholder="Te amo!"><button class="btn" onclick="sendLove()">💖 Enviar</button></div>
+  <div class="card"><h2>🖍️ Lousa</h2><label>Escreva</label><input type="text" id="chalk-text" placeholder="Escreva..."><button class="btn" onclick="sendChalk()">📝 Enviar</button></div>
+  <div class="card"><h2>✏️ Personalizada</h2><label>Mensagem</label><textarea id="custom-text" placeholder="Escreva..."></textarea><button class="btn" onclick="sendCustom()">📨 Enviar</button></div>
+  <div class="card"><h2>👨‍🍳 Chamar Garçom</h2><label>Mesa</label><input type="text" id="table-number" placeholder="12"><button class="btn btn-secondary" onclick="callWaiter()">🔔 Chamar</button></div>
+  <div class="card"><h2>😤 Reclamação</h2><label>Problema</label><textarea id="complaint-text" placeholder="Descreva..."></textarea><button class="btn btn-secondary" onclick="sendComplaint()">📢 Enviar</button></div>
+  <div class="card"><h2>🖼️ Imagem</h2><label>URL</label><input type="text" id="image-url" placeholder="https://..."><button class="btn btn-secondary" onclick="sendImageUrl()">📎 Enviar</button><hr><label>Arquivo</label><input type="file" id="image-upload" accept="image/*"><button class="btn btn-secondary" onclick="sendImageFile()">📤 Enviar</button></div>
+  <div class="card"><h2>⭐ Avaliação</h2><div class="star-rating" id="star-rating"><span data-star="1">⭐</span><span data-star="2">⭐</span><span data-star="3">⭐</span><span data-star="4">⭐</span><span data-star="5">⭐</span></div><button class="btn" onclick="sendRating()">⭐ Enviar</button></div>
+  <div id="status">🔄 Conectando ao Firestore...</div>
 </div>
 
 <script>
+  // =============================================================
+  // COLOQUE AQUI AS CREDENCIAIS DO SEU PROJETO FIREBASE
+  // =============================================================
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_PROJETO.firebaseapp.com",
+    projectId: "SEU_PROJETO",
+    storageBucket: "SEU_PROJETO.appspot.com",
+    messagingSenderId: "SEU_SENDER_ID",
+    appId: "SEU_APP_ID"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
   const urlParams = new URLSearchParams(window.location.search);
   const mode = urlParams.get('mode') || 'tv';
 
@@ -138,12 +106,10 @@
     }
   }
 
-  const channel = new BroadcastChannel('restaurante_tv');
-
   if (mode === 'tv') {
     tvContainer.style.display = 'flex';
     controlContainer.style.display = 'none';
-    log('Modo TV (BroadcastChannel)');
+    log('Modo TV - Firestore');
 
     const controlUrl = window.location.href.split('?')[0] + '?mode=control';
     new QRCode(document.getElementById('qr-code'), {
@@ -153,14 +119,30 @@
     });
     log('QR Code: ' + controlUrl);
 
-    channel.onmessage = (event) => {
-      const msg = event.data;
-      log('Mensagem recebida: ' + JSON.stringify(msg));
+    // Testa conexão
+    db.collection('tv_mensagens').limit(1).get()
+      .then(() => { log('✅ Firestore conectado'); })
+      .catch(err => { log('❌ Erro Firestore: ' + err.message); });
+
+    const messagesRef = db.collection('tv_mensagens')
+      .orderBy('timestamp', 'desc')
+      .limit(1);
+
+    messagesRef.onSnapshot((snapshot) => {
+      log('Snapshot recebido, docs: ' + snapshot.size);
+      if (snapshot.empty) {
+        log('Nenhuma mensagem nova');
+        return;
+      }
+      const doc = snapshot.docs[0];
+      const msg = doc.data();
+      log('Mensagem: ' + JSON.stringify(msg));
       if (msg) displayMessage(msg);
-    };
+    }, (error) => {
+      log('❌ Listener: ' + error.message);
+    });
 
     function displayMessage(msg) {
-      log('Exibindo: ' + JSON.stringify(msg));
       if (window._timeout) clearTimeout(window._timeout);
       if (window._animTimeout) clearTimeout(window._animTimeout);
       animLayer.innerHTML = '';
@@ -171,6 +153,8 @@
       messageBox.style.border = '2px solid rgba(255,215,0,0.2)';
       messageBox.style.borderRadius = '30px';
       messageBox.style.fontFamily = "'Segoe UI', sans-serif";
+      messageBox.style.padding = '2rem 3rem';
+      messageBox.style.backdropFilter = 'blur(8px)';
 
       const type = msg.type || 'custom';
 
@@ -315,7 +299,7 @@
   if (mode === 'control') {
     tvContainer.style.display = 'none';
     controlContainer.style.display = 'block';
-    document.getElementById('status').textContent = '📡 Modo fallback (BroadcastChannel)';
+    document.getElementById('status').textContent = '🔄 Conectando ao Firestore...';
 
     let selectedStars = 0;
     document.querySelectorAll('#star-rating span').forEach(el => {
@@ -328,40 +312,47 @@
       });
     });
 
-    function sendToChannel(data) {
-      channel.postMessage(data);
-      document.getElementById('status').textContent = '✅ Mensagem enviada!';
-      setTimeout(() => { document.getElementById('status').textContent = '📡 Modo fallback (BroadcastChannel)'; }, 2000);
+    function sendToFirestore(data) {
+      const payload = { ...data, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+      db.collection('tv_mensagens').add(payload)
+        .then(() => {
+          document.getElementById('status').textContent = '✅ Mensagem enviada!';
+          setTimeout(() => { document.getElementById('status').textContent = '✅ Conectado ao Firestore'; }, 2000);
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('status').textContent = '❌ Erro: ' + err.message;
+        });
     }
 
     window.sendBirthday = function() {
       const name = document.getElementById('birthday-name').value.trim() || 'amigo';
-      sendToChannel({ type: 'birthday', name });
+      sendToFirestore({ type: 'birthday', name });
     };
     window.sendLove = function() {
       const msg = document.getElementById('love-msg').value.trim() || 'Te amo!';
-      sendToChannel({ type: 'love', message: msg });
+      sendToFirestore({ type: 'love', message: msg });
     };
     window.sendChalk = function() {
       const text = document.getElementById('chalk-text').value.trim() || 'Escreva algo...';
-      sendToChannel({ type: 'chalk', text });
+      sendToFirestore({ type: 'chalk', text });
     };
     window.sendCustom = function() {
       const text = document.getElementById('custom-text').value.trim() || 'Mensagem personalizada';
-      sendToChannel({ type: 'custom', text });
+      sendToFirestore({ type: 'custom', text });
     };
     window.callWaiter = function() {
       const table = document.getElementById('table-number').value.trim() || '?';
-      sendToChannel({ type: 'waiter', table });
+      sendToFirestore({ type: 'waiter', table });
     };
     window.sendComplaint = function() {
       const text = document.getElementById('complaint-text').value.trim() || 'Reclamação';
-      sendToChannel({ type: 'complaint', text });
+      sendToFirestore({ type: 'complaint', text });
     };
     window.sendImageUrl = function() {
       const url = document.getElementById('image-url').value.trim();
       if (!url) { alert('Digite uma URL'); return; }
-      sendToChannel({ type: 'image', url });
+      sendToFirestore({ type: 'image', url });
     };
     window.sendImageFile = function() {
       const fileInput = document.getElementById('image-upload');
@@ -369,14 +360,18 @@
       if (!file) { alert('Selecione uma imagem'); return; }
       const reader = new FileReader();
       reader.onload = (e) => {
-        sendToChannel({ type: 'image', url: e.target.result });
+        sendToFirestore({ type: 'image', url: e.target.result });
       };
       reader.readAsDataURL(file);
     };
     window.sendRating = function() {
       if (selectedStars === 0) { alert('Selecione uma nota'); return; }
-      sendToChannel({ type: 'rating', stars: selectedStars });
+      sendToFirestore({ type: 'rating', stars: selectedStars });
     };
+
+    db.collection('tv_mensagens').limit(1).get()
+      .then(() => { document.getElementById('status').textContent = '✅ Conectado ao Firestore'; })
+      .catch(err => { document.getElementById('status').textContent = '❌ Erro: ' + err.message; });
   }
 
   if (mode !== 'tv' && mode !== 'control') {
